@@ -54,15 +54,34 @@
 			echo json_encode($return);
 			break;
 		case "PUT":
+			header('Content-Type: application/json');
+			parse_str(file_get_contents("php://input"), $_PUT);
+			$user = $args[2];
+			$pass = $_PUT['pass'];
+			$npass = $_PUT['npass'];
+
+			$userObj = $collection->findOne(array("user"=>$user));
+			$userPass = $userObj["pass"];
+
+			if($pass==$userPass){
+				$collection->update(array("user"=>$user), 
+		     		array('$set'=>array("pass"=>$npass)));
+				http_response_code(200);
+			} else {
+				http_response_code(401);
+			}
+
 			break;
 		case "DELETE":
-			if(args[1] == users){
+			header('Content-Type: application/json');
+			if($args[1] == "users"){
 				$user = $args[2];
 				$userObj = $collection->findOne(array("user"=>$user));
 				$userPass = $userObj['pass'];
 
 				$collection->remove(array('user'=>$user),array("justOne" => true));
 
+				http_response_code(204);
 				$return = array('status'=>'204 Deleted');
 
 			   	echo json_encode($return);
